@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon Tic Tac Toe Pro</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 27, 46, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --primary: #00f2fe;
+      --primary-glow: rgba(0, 242, 254, 0.4);
+      --accent: #ff007f;
+      --accent-glow: rgba(255, 0, 127, 0.4);
+      --text: #ffffff;
+      --subtext: #8892b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #141c2f, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 25px 20px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .mode-container {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--subtext);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, var(--primary), #4facfe);
+      color: #0b0f19;
+      border-color: transparent;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(11, 15, 25, 0.6);
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .score-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .score-box span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--subtext);
+      text-transform: uppercase;
+    }
+
+    .score-box strong {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    #score-x { color: var(--accent); }
+    #score-o { color: var(--primary); }
+    #score-draw { color: #e2e8f0; }
+
+    #turn-indicator {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 0 auto 20px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .box {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .box:active {
+      transform: scale(0.94);
+    }
+
+    .box.x {
+      color: var(--accent);
+      border-color: rgba(255, 0, 127, 0.3);
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .box.o {
+      color: var(--primary);
+      border-color: rgba(0, 242, 254, 0.3);
+      text-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .box.win {
+      background: rgba(255, 255, 255, 0.12);
+      transform: scale(1.04);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+      to { box-shadow: 0 0 25px rgba(255, 255, 255, 0.5); }
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    #btn-reset-round {
+      background: linear-gradient(135deg, var(--accent), #e11d48);
+      color: #ffffff;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    #btn-reset-score {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--subtext);
+      border: 1px solid var(--border);
+    }
+
+    .action-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    <h1>Tic Tac Toe</h1>
+
+    <div class="mode-container">
+      <button class="mode-btn active" onclick="changeMode('friend')">Friend</button>
+      <button class="mode-btn" onclick="changeMode('easy')">AI (Easy)</button>
+      <button class="mode-btn" onclick="changeMode('hard')">AI (Hard)</button>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-box">
+        <span id="player-x-label">Player X</span>
+        <strong id="score-x">0</strong>
+      </div>
+      <div class="score-box">
+        <span>Draws</span>
+        <strong id="score-draw">0</strong>
+      </div>
+      <div class="score-box">
+        <span id="player-o-label">Player O</span>
+        <strong id="score-o">0</strong>
+      </div>
+    </div>
+
+    <div id="turn-indicator">Player X's Turn</div>
+
+    <div class="grid" id="grid">
+      <div class="box" data-index="0"></div>
+      <div class="box" data-index="1"></div>
+      <div class="box" data-index="2"></div>
+      <div class="box" data-index="3"></div>
+      <div class="box" data-index="4"></div>
+      <div class="box" data-index="5"></div>
+      <div class="box" data-index="6"></div>
+      <div class="box" data-index="7"></div>
+      <div class="box" data-index="8"></div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="action-btn" id="btn-reset-round" onclick="resetRound()">Play Again</button>
+      <button class="action-btn" id="btn-reset-score" onclick="resetScore()">Reset Score</button>
+    </div>
+  </div>
+
+  <script>
+    const gridBoxes = document.querySelectorAll('.box');
+    const indicator = document.getElementById('turn-indicator');
+    const labelO = document.getElementById('player-o-label');
+    const scoreXDisplay = document.getElementById('score-x');
+    const scoreODisplay = document.getElementById('score-o');
+    const scoreDrawDisplay = document.getElementById('score-draw');
+
+    let currentMode = 'friend';
+    let boardState = ["", "", "", "", "", "", "", "", ""];
+    let turn = 'X';
+    let isActive = true;
+    let scores = { X: 0, O: 0, draws: 0 };
+
+    const winPatterns = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(frequency, type = 'sine', duration = 0.08) {
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function changeMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      labelO.textContent = mode === 'friend' ? 'Player O' : 'AI (O)';
+      resetScore();
+    }
+
+    function onBoxClick(e) {
+      const idx = e.target.getAttribute('data-index');
+      if (boardState[idx] !== "" || !isActive) return;
+
+      executeMove(idx, turn);
+
+      if (isActive && currentMode !== 'friend' && turn === 'O') {
+        setTimeout(handleAIMove, 300);
+      }
+    }
+
+    function executeMove(idx, player) {
+      boardState[idx] = player;
+      const targetBox = gridBoxes[idx];
+      targetBox.textContent = player;
+      targetBox.classList.add(player.toLowerCase());
+
+      playTone(player === 'X' ? 440 : 660, 'triangle');
+
+      const winningLine = getWinningCombo(boardState, player);
+
+      if (winningLine) {
+        finishGame(player, winningLine);
+      } else if (boardState.every(cell => cell !== "")) {
+        finishGame('draw');
+      } else {
+        turn = turn === 'X' ? 'O' : 'X';
+        indicator.textContent = (currentMode !== 'friend' && turn === 'O') ? "AI Thinking..." : `Player ${turn}'s Turn`;
+        indicator.style.color = turn === 'X' ? 'var(--accent)' : 'var(--primary)';
+      }
+    }
+
+    function handleAIMove() {
+      if (!isActive) return;
+
+      let chosenIndex;
+      if (currentMode === 'easy') {
+        const empties = boardState.map((val, i) => val === "" ? i : null).filter(i => i !== null);
+        chosenIndex = empties[Math.floor(Math.random() * empties.length)];
+      } else {
+        chosenIndex = runMinimax(boardState, 'O').index;
+      }
+
+      if (chosenIndex !== undefined) {
+        executeMove(chosenIndex, 'O');
+      }
+    }
+
+    function getWinningCombo(board, player) {
+      for (const pattern of winPatterns) {
+        if (pattern.every(idx => board[idx] === player)) {
+          return pattern;
+        }
+      }
+      return null;
+    }
+
+    function finishGame(outcome, line = null) {
+      isActive = false;
+
+      if (outcome === 'draw') {
+        indicator.textContent = "It's a Draw!";
+        indicator.style.color = "#ffffff";
+        scores.draws++;
+        scoreDrawDisplay.textContent = scores.draws;
+        playTone(300, 'sawtooth', 0.2);
+      } else {
+        indicator.textContent = (currentMode !== 'friend' && outcome === 'O') ? "AI Wins!" : `Player ${outcome} Wins!`;
+        indicator.style.color = outcome === 'X' ? 'var(--accent)' : 'var(--primary)';
+        scores[outcome]++;
+        if (outcome === 'X') scoreXDisplay.textContent = scores.X;
+        else scoreODisplay.textContent = scores.O;
+
+        line.forEach(i => gridBoxes[i].classList.add('win'));
+
+        playTone(587, 'sine', 0.1);
+        setTimeout(() => playTone(880, 'sine', 0.25), 100);
+      }
+    }
+
+    function resetRound() {
+      boardState = ["", "", "", "", "", "", "", "", ""];
+      turn = 'X';
+      isActive = true;
+      indicator.textContent = "Player X's Turn";
+      indicator.style.color = 'var(--accent)';
+
+      gridBoxes.forEach(box => {
+        box.textContent = "";
+        box.classList.remove('x', 'o', 'win');
+      });
+    }
+
+    function resetScore() {
+      scores = { X: 0, O: 0, draws: 0 };
+      scoreXDisplay.textContent = '0';
+      scoreODisplay.textContent = '0';
+      scoreDrawDisplay.textContent = '0';
+      resetRound();
+    }
+
+    function runMinimax(board, player) {
+      const openIndices = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+
+      if (getWinningCombo(board, 'X')) return { score: -10 };
+      if (getWinningCombo(board, 'O')) return { score: 10 };
+      if (openIndices.length === 0) return { score: 0 };
+
+      const allTests = [];
+
+      for (let i = 0; i < openIndices.length; i++) {
+        const testCase = {};
+        testCase.index = openIndices[i];
+        board[openIndices[i]] = player;
+
+        if (player === 'O') {
+          const res = runMinimax(board, 'X');
+          testCase.score = res.score;
+        } else {
+          const res = runMinimax(board, 'O');
+          testCase.score = res.score;
+        }
+
+        board[openIndices[i]] = "";
+        allTests.push(testCase);
+      }
+
+      let bestPick;
+      if (player === 'O') {
+        let maxVal = -10000;
+        for (let i = 0; i < allTests.length; i++) {
+          if (allTests[i].score > maxVal) {
+            maxVal = allTests[i].score;
+            bestPick = i;
+          }
+        }
+      } else {
+        let minVal = 10000;
+        for (let i = 0; i < allTests.length; i++) {
+          if (allTests[i].score < minVal) {
+            minVal = allTests[i].score;
+            bestPick = i;
+          }
+        }
+      }
+
+      return allTests[bestPick];
+    }
+
+    gridBoxes.forEach(box => box.addEventListener('click', onBoxClick));
+  </script>
+</body>
+        </html>
